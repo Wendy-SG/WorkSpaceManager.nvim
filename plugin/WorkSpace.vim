@@ -422,18 +422,6 @@ function! s:workspaceEntryCache.collapseNode(node) dict
     let l:lineContent = getline('.')
     let l:newline  = substitute(getline('.'), '\~', '+', 'g')
 
-    " if has_key(a:node, 'islastNode')
-    "     let l:ui = s:workspaceUI.new()
-    "     let l:barpos = stridx(l:lineContent, '+')
-    "     let l:index_before = l:barpos - 2
-    "     let l:index_after = l:barpos
-    "     let l:content_after = l:lineContent[0:l:index_before]
-    "     let l:content_before = l:lineContent[l:index_after:]
-
-    "     let l:new = l:content_after . l:ui.getUIContent().BarUI.turn . l:content_before
-    "     call setbufline(self.bufnr, l:lineNum, l:new)
-    " endif
-
     call setbufline(self.bufnr, l:lineNum, l:newline)
 endfunction
 
