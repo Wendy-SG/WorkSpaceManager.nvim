@@ -15,21 +15,20 @@ WorkspaceManager.vim is a Vim plugin for managing workspaces and providing a tre
 Using [vim-plug](https://github.com/junegunn/vim-plug):
 
 ```vim
-Plug 'your-username/WorkspaceManager.vim'
+Plug 'your-username/WorkspaceManager.nvim'
 ```
 
-Then run `:PlugInstall` in Vim.
+Then run `:PlugInstall` in NeoVim.
 
 ## Usage
 
-WorkspaceManager.vim allows you to create and manage workspaces, providing a tree-like view of your project structure.
+WorkspaceManager.nvim allows you to create and manage workspaces, providing a tree-like view of your project structure.
 Not available for `vim` users.
 
 To get started:
 
-1. Open Vim in your project directory.
-2. Run `:CreateWorkspace` to initialize the workspace. And write directory into `~/.config/nvim/.WorkSapceManager`
-3. Use `:ToggleWorkspaceTree` to open/close the workspace tree view.
+1. Run `:CreateWorkspace` to initialize the workspace. And write directory into `~/.config/nvim/.WorkSapceManager`
+2. Use `:ToggleWorkspaceTree` to open/close the workspace tree view.
 
 ## Commands
 
