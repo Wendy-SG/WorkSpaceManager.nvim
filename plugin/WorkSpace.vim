@@ -256,6 +256,7 @@ function! s:isWorkspaceBufferExists()
 endfunction
 
 function! s:workspaceCache.enterWorkspace(line, ui) dict
+
     if self.checkBlockArea(a:line)
         return
     endif
@@ -300,6 +301,7 @@ function! s:workspaceEntryCache.enterSpace(ui) dict
     call l:workspaceCache.setlineForBuffer(l:workspaceCache.bufUI, l:enteredTreeBufnr)
     call l:workspaceCache.splitWindow(l:enteredTreeBufnr)
     call cursor(l:workspaceCache.line, 0)
+
     call a:ui.setHighlight()
     call l:workspaceCache.bufferOption()
 
@@ -310,8 +312,19 @@ function! s:workspaceEntryCache.enterSpace(ui) dict
 
     call self.createNewTree(l:tree.children, l:blockAreaEnd + 1, l:enteredTreeBufnr, l:uiContent.BarUI)
     call nvim_buf_set_keymap(l:enteredTreeBufnr, 'n', g:WorkSpaceManagerEnter, ':call <SID>toggleNode()<CR>', { 'nowait': 1, 'silent': v:true })
+    call nvim_buf_set_keymap(l:enteredTreeBufnr, 'n', 'c', ':call <SID>create_file()<CR>', { 'nowait': 1, 'silent': v:true })
 endfunction
 
+function! s:create_file()
+    call s:workspaceEntryCache.createFile()
+endfunction
+
+function! s:workspaceEntryCache.createFile() dict
+    let l:selectedNode = self.getLineNode()
+
+    let l:path = s:pathUtils.new(l:selectedNode)
+    let l:node = self.findNodeByPath(l:path.solvePath())
+endfunction
 
 function! s:workspaceEntryCache.findNodeByPath(path) dict
     return self._findNodeByPathRecursive(self.tree.children, a:path)
@@ -677,6 +690,10 @@ endfunction
 
 function! s:pathUtils.checkPathInvild(path) dict
     return filereadable(a:path) && filewritable(a:path)
+endfunction
+
+function! s:pathUtils.newFile() dict
+
 endfunction
 
 function! s:createWorkspace(dir = '')
