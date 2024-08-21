@@ -15,7 +15,7 @@ WorkspaceManager.vim is a Vim plugin for managing workspaces and providing a tre
 Using [vim-plug](https://github.com/junegunn/vim-plug):
 
 ```vim
-Plug 'your-username/WorkspaceManager.nvim'
+Plug 'Wendy-SG/WorkspaceManager.nvim'
 ```
 
 Then run `:PlugInstall` in NeoVim.
