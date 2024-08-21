@@ -13,6 +13,10 @@ let s:workspaceUI = {}
 let s:workspaceDirCacheName = '.WorkspaceManager'
 let s:isWindowsOS = has('win32') || has('win64')
 
+let g:WorkSpaceManagerEnter = '<CR>'
+let g:WorkSpaceManagerExit = 'Q'
+let g:WorkSpaceManagerDelete = 'd'
+
 command! -n=? -complete=dir CreateWorkspace call s:createWorkspace(<q-args>)
 command! -n=0 ToggleWorkspaceTree call s:toggleWorkspaceTree()
 
@@ -190,9 +194,9 @@ function! s:workspaceCache.drawTree() dict
 
     call l:ui.setHighlight()
 
-    call nvim_buf_set_keymap(l:newBuf, 'n', 'Q', ':call <SID>exitBuffer()<CR>', { 'nowait': 1, 'silent': v:true })
-    call nvim_buf_set_keymap(l:newBuf, 'n', '<CR>', ':call <SID>enterWorkspace()<CR>', { 'nowait': 1, 'silent': v:true })
-    call nvim_buf_set_keymap(l:newBuf, 'n', 'd', ':call <SID>deleteWorkspace()<CR>', { 'nowait': 1, 'silent': v:true })
+    call nvim_buf_set_keymap(l:newBuf, 'n', g:WorkSpaceManagerExit, ':call <SID>exitBuffer()<CR>', { 'nowait': 1, 'silent': v:true })
+    call nvim_buf_set_keymap(l:newBuf, 'n', g:WorkSpaceManagerEnter, ':call <SID>enterWorkspace()<CR>', { 'nowait': 1, 'silent': v:true })
+    call nvim_buf_set_keymap(l:newBuf, 'n', g:WorkSpaceManagerDelete, ':call <SID>deleteWorkspace()<CR>', { 'nowait': 1, 'silent': v:true })
 endfunction
 
 function! s:workspaceCache.splitWindow(bufnr)
@@ -305,7 +309,7 @@ function! s:workspaceEntryCache.enterSpace(ui) dict
     let self.tree = l:tree
 
     call self.createNewTree(l:tree.children, l:blockAreaEnd + 1, l:enteredTreeBufnr, l:uiContent.BarUI)
-    call nvim_buf_set_keymap(l:enteredTreeBufnr, 'n', '<CR>', ':call <SID>toggleNode()<CR>', { 'nowait': 1, 'silent': v:true })
+    call nvim_buf_set_keymap(l:enteredTreeBufnr, 'n', g:WorkSpaceManagerEnter, ':call <SID>toggleNode()<CR>', { 'nowait': 1, 'silent': v:true })
 endfunction
 
 
