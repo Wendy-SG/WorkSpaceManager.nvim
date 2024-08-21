@@ -1,6 +1,6 @@
 # WorkspaceManager.vim
 
-WorkspaceManager.vim is a Vim plugin for managing workspaces and providing a tree-like view of your project structure.
+WorkspaceManager.vim is a NeoVim plugin for managing workspaces and providing a tree-like view of your project structure.
 
 ## Table of Contents
 
