@@ -327,7 +327,12 @@ function! s:workspaceEntryCache.createFile() dict
     let l:path = s:pathUtils.new(l:selectedNode)
     let l:node = self.findNodeByPath(l:path.solvePath())
     call l:path.getParent()
-    let l:parentPath = l:path.parent[-2]
+
+    if len(l:path.parent) < 2
+        let l:parentPath = l:path.parent[0]
+    else
+        let l:parentPath = l:path.parent[-2]
+    endif
 
     let l:createDir = ''
     let l:expandPath = ''
@@ -345,19 +350,22 @@ function! s:workspaceEntryCache.createFile() dict
         let l:createDir = l:parentPath
     endif
 
-    " call self.redrawParentNode(l:expandPath)
+    call self.redrawParentNode(l:expandPath)
     let l:fileName = fnameescape(input('Enter file name: '))
     let l:fileType = input('Enter FileType [d/f]')
-    if l:fileType !~= '^[DdFf]$'
-        call s:info_msg('Invild file type.')
+    if l:fileType !~# '^[DdFf]$'
+        call s:infoMsg('Invild file type.')
         return
     endif
 
     let l:fullCreatePath = l:createDir. l:fileName
     let l:newPath = s:pathUtils.new(l:fullCreatePath)
+    if l:fileType =~# '^[Dd]$'
+        let l:newPath.isDirectory = 1
+    endif
 
     let l:include = l:newPath.newFile()
-    echo l:include
+    echo l:node
 endfunction
 
 function! s:workspaceEntryCache.findNodeByPath(path) dict
