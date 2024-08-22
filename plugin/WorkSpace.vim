@@ -331,12 +331,6 @@ function! s:workspaceEntryCache.createFile() dict
     let l:path = s:pathUtils.new(l:selectedNode)
     let l:node = self.findNodeByPath(l:path.solvePath())
 
-    " if len(l:path.parent) < 2
-    "     let l:path.parent = l:path.parent[0]
-    " else
-    "     let l:path.parent = l:path.parent[-2]
-    " endif
-
     if l:node.isDirectory
         let l:expandPath = l:node
         let l:createDir = l:node.path
