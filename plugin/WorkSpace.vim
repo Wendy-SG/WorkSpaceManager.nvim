@@ -15,7 +15,8 @@ let s:isWindowsOS = has('win32') || has('win64')
 
 let g:WorkSpaceManagerEnter = '<CR>'
 let g:WorkSpaceManagerExit = 'Q'
-let g:WorkSpaceManagerDelete = 'd'
+let g:WorkSpaceManagerListDelete = 'd'
+let g:WorkSpaceManagerTreeCreateFile = 'c'
 let g:WorkSpaceCreateFileExpandNode = 1
 
 command! -n=? -complete=dir CreateWorkspace call s:createWorkspace(<q-args>)
@@ -195,7 +196,7 @@ function! s:workspaceCache.drawTree() dict
     call l:ui.setHighlight()
     call nvim_buf_set_keymap(l:newBuf, 'n', g:WorkSpaceManagerExit, ':call <SID>exitBuffer()<CR>', { 'nowait': 1, 'silent': v:true })
     call nvim_buf_set_keymap(l:newBuf, 'n', g:WorkSpaceManagerEnter, ':call <SID>enterWorkspace()<CR>', { 'nowait': 1, 'silent': v:true })
-    call nvim_buf_set_keymap(l:newBuf, 'n', g:WorkSpaceManagerDelete, ':call <SID>deleteWorkspace()<CR>', { 'nowait': 1, 'silent': v:true })
+    call nvim_buf_set_keymap(l:newBuf, 'n', g:WorkSpaceManagerListDelete, ':call <SID>deleteWorkspace()<CR>', { 'nowait': 1, 'silent': v:true })
 endfunction
 
 function! s:workspaceCache.splitWindow(bufnr)
@@ -318,7 +319,7 @@ function! s:workspaceEntryCache.enterSpace(ui) dict
 
     call self.createNewTree(l:tree.children, l:blockAreaEnd + 1, l:enteredTreeBufnr, l:uiContent.BarUI)
     call nvim_buf_set_keymap(l:enteredTreeBufnr, 'n', g:WorkSpaceManagerEnter, ':call <SID>toggleNode()<CR>', { 'nowait': 1, 'silent': v:true })
-    call nvim_buf_set_keymap(l:enteredTreeBufnr, 'n', 'c', ':call <SID>create_file()<CR>', { 'nowait': 1, 'silent': v:true })
+    call nvim_buf_set_keymap(l:enteredTreeBufnr, 'n', g:WorkSpaceManagerTreeCreateFile, ':call <SID>create_file()<CR>', { 'nowait': 1, 'silent': v:true })
 endfunction
 
 function! s:create_file()
