@@ -522,23 +522,26 @@ function! s:workspaceEntryCache.handleFile(file) dict
 endfunction
 
 function! s:VisibledChildrenCount(node, list)
+    let l:count = 0
+    
     for l:child in a:node.children
-        if l:child.isDirectory && l:child.isOpen && !empty(l:child.children)
-            call s:VisibledChildrenCount(l:child, a:list)
-        endif
         call add(a:list, l:child.path)
+        let l:count += 1
+
+        if l:child.isDirectory && l:child.isOpen
+            let l:count += s:VisibledChildrenCount(l:child, a:list)
+        endif
     endfor
+
+    return l:count
 endfunction
 
 function! s:workspaceEntryCache.collapseNode(node) dict
-    echo a:node.path
     if empty(a:node.children) && !a:node.isOpen
         return
     endif
     let l:list = []
-    call s:VisibledChildrenCount(a:node, l:list)
-    let l:count = len(l:list)
-
+    let l:count = s:VisibledChildrenCount(a:node, l:list)
     let l:result = self.findLineByNode(a:node) - 1
 
     let a:node.isOpen = 0
