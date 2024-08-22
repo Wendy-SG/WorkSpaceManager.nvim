@@ -330,50 +330,62 @@ function! s:workspaceEntryCache.createFile() dict
 
     let l:path = s:pathUtils.new(l:selectedNode)
     let l:node = self.findNodeByPath(l:path.solvePath())
-    call l:path.getParent()
 
-    if len(l:path.parent) < 2
-        let l:parentPath = l:path.parent[0]
-    else
-        let l:parentPath = l:path.parent[-2]
-    endif
-
-    let l:createDir = ''
-    let l:expandPath = ''
-
-    if !self.isVildNode(l:node)
-        call s:error_msg('Invild node.')
-        return
-    endif
+    " if len(l:path.parent) < 2
+    "     let l:path.parent = l:path.parent[0]
+    " else
+    "     let l:path.parent = l:path.parent[-2]
+    " endif
 
     if l:node.isDirectory
         let l:expandPath = l:node
         let l:createDir = l:node.path
     else
-        let l:expandPath = self.getParentNode(l:parentPath)
-        let l:createDir = l:parentPath
+        let l:expandPath = self.getParentNode(fnamemodify(l:path.path, ':h'))
+        let l:createDir = fnamemodify(l:path.path, ':h')
     endif
 
-    " let l:fileName = fnameescape(input('Enter file name: '))
+    let l:fileName = input('Enter file/directory name: ')
+    if empty(l:fileName)
+        call s:infoMsg('File creation cancelled.')
+        return
+    endif
 
-    " let l:fileType = input('Enter FileType [d/f]')
-    " if l:fileType !~# '^[DdFf]$'
-    "     call s:infoMsg('Invild file type.')
-    "     return
-    " endif
+    let l:fileType = input('Enter type (f for file, d for directory): ')
+    if l:fileType !~# '^[fd]$'
+        call s:errorMsg('Invalid type. Please enter f for file or d for directory.')
+        return
+    endif
 
-    " let l:fullCreatePath = l:createDir. l:fileName
-    " let l:newPath = s:pathUtils.new(l:fullCreatePath)
+    let l:fullCreatePath = l:createDir . l:fileName
+    let l:newPath = s:pathUtils.new(l:fullCreatePath)
+    let l:newPath.isDirectory = (l:fileType ==# 'd')
 
-    " if l:fileType =~# '^[Dd]$'
-    "     let l:newPath.isDirectory = 1
-    " endif
+    if l:newPath.isDirectory
+        call mkdir(l:fullCreatePath, 'p')
+    else
+        call writefile([], l:fullCreatePath)
+    endif
 
-    " let l:include = l:newPath.newFile()
-    " call add(l:expandPath.children, l:include)
+    if !filereadable(l:fullCreatePath) && !isdirectory(l:fullCreatePath)
+        call s:errorMsg('Failed to create ' . (l:newPath.isDirectory ? 'directory' : 'file') . ': ' . l:fullCreatePath)
+        return
+    endif
+
+    let l:newNode = l:newPath.newFile()
+
+    let l:blockend = self.blockend
+
+    call add(l:expandPath.children, l:newNode)
+    let l:index = s:workspaceEntryCache.findLineByNode(l:newNode)
+    call insert(self.files, l:newNode.path, l:index - l:blockend + 1)
 
     call self.collapseNode(l:expandPath)
+    call self.expandNode(l:expandPath)
+
+    call s:infoMsg((l:newPath.isDirectory ? 'Directory' : 'File') . ' created: ' . l:fullCreatePath)
 endfunction
+
 
 function! s:workspaceEntryCache.findNodeByPath(path) dict
     return self._findNodeByPathRecursive(self.tree.children, a:path)
@@ -721,6 +733,7 @@ function! s:pathUtils.getParent()
 
 
     let l:base_segments = split(s:workspaceCache.selectedPath, '/')
+
     for l:seg in l:base_segments
         call remove(l:segments, index(l:segments, l:seg))
     endfor
