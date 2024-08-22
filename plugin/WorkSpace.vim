@@ -167,7 +167,7 @@ function! s:workspaceCache.drawTree() dict
     endif
 
     let l:fileContent = readfile(self.cacheFileFullPath.name)
-    let s:workspaceCache.fileContent = l:fileContent
+
     let l:ui = s:workspaceUI.new()
     let l:HeaderUI = l:ui.getUIContent().HeaderUI
 
@@ -192,9 +192,7 @@ function! s:workspaceCache.drawTree() dict
 
     call self.splitWindow(l:newBuf)
     call self.bufferOption()
-
     call l:ui.setHighlight()
-
     call nvim_buf_set_keymap(l:newBuf, 'n', g:WorkSpaceManagerExit, ':call <SID>exitBuffer()<CR>', { 'nowait': 1, 'silent': v:true })
     call nvim_buf_set_keymap(l:newBuf, 'n', g:WorkSpaceManagerEnter, ':call <SID>enterWorkspace()<CR>', { 'nowait': 1, 'silent': v:true })
     call nvim_buf_set_keymap(l:newBuf, 'n', g:WorkSpaceManagerDelete, ':call <SID>deleteWorkspace()<CR>', { 'nowait': 1, 'silent': v:true })
@@ -208,6 +206,7 @@ endfunction
 
 function! s:workspaceCache.exitBuffer() dict
     let l:bufnr = self.getListTreeBufnr()
+
     if l:bufnr < 0
         call s:errorMsg('Failed to exit buffer.')
         return
@@ -264,6 +263,7 @@ function! s:workspaceCache.enterWorkspace(line, ui) dict
     endif
 
     let self.line = a:line
+
     let l:lineContent = getline(self.line)
     let self.selectedPath = l:lineContent
 
@@ -291,6 +291,7 @@ endfunction
 function! s:workspaceEntryCache.enterSpace(ui) dict
     let l:enteredTreeBufnr = nvim_create_buf(0, 1)
     let l:workspaceCache = copy(s:workspaceCache)
+
     let l:tree = s:treeUtils.getItem()
 
     let self.bufnr = l:enteredTreeBufnr
@@ -308,6 +309,9 @@ function! s:workspaceEntryCache.enterSpace(ui) dict
     call l:workspaceCache.bufferOption()
 
     let [_, l:blockAreaEnd] = s:blockArea
+
+    " get child line
+    let self.blockend = l:blockAreaEnd
 
     call l:tree.structured_child()
     let self.tree = l:tree
@@ -350,34 +354,80 @@ function! s:workspaceEntryCache.createFile() dict
         let l:createDir = l:parentPath
     endif
 
-    let l:fileName = fnameescape(input('Enter file name: '))
+    " let l:fileName = fnameescape(input('Enter file name: '))
 
-    let l:fileType = input('Enter FileType [d/f]')
-    if l:fileType !~# '^[DdFf]$'
-        call s:infoMsg('Invild file type.')
-        return
-    endif
+    " let l:fileType = input('Enter FileType [d/f]')
+    " if l:fileType !~# '^[DdFf]$'
+    "     call s:infoMsg('Invild file type.')
+    "     return
+    " endif
 
-    let l:fullCreatePath = l:createDir. l:fileName
-    let l:newPath = s:pathUtils.new(l:fullCreatePath)
+    " let l:fullCreatePath = l:createDir. l:fileName
+    " let l:newPath = s:pathUtils.new(l:fullCreatePath)
 
-    if l:fileType =~# '^[Dd]$'
-        let l:newPath.isDirectory = 1
-    endif
+    " if l:fileType =~# '^[Dd]$'
+    "     let l:newPath.isDirectory = 1
+    " endif
 
-    let l:include = l:newPath.newFile()
-    call add(l:expandPath.children, l:include)
+    " let l:include = l:newPath.newFile()
+    " call add(l:expandPath.children, l:include)
 
+    call self.collapseNode(l:expandPath)
 endfunction
-
-function! s:workspaceEntryCache.redrawParentNode(node)
-    call self.collapseNode(a:node)
-    call self.expandNode(a:node, 0)
-endfunction
-
 
 function! s:workspaceEntryCache.findNodeByPath(path) dict
     return self._findNodeByPathRecursive(self.tree.children, a:path)
+endfunction
+
+function! s:workspaceEntryCache.findLineByNode(node) dict
+    if type(a:node) != v:t_dict
+        return -1  " Invalid node
+    endif
+    
+    let l:blockend = self.blockend
+
+    let l:result = self._findLineByNodeRecursive(self.tree, a:node, l:blockend + 1)
+    return l:result
+endfunction
+
+function! s:workspaceEntryCache._findLineByNodeRecursive(currentNode, targetNode, currentLine) dict
+    if a:currentNode.path ==# a:targetNode.path
+        return a:currentLine
+    endif
+
+    let l:line = a:currentLine + 1
+    for l:child in a:currentNode.children
+        if l:child.path ==# a:targetNode.path
+            return l:line
+        endif
+
+        if l:child.isDirectory && l:child.isOpen
+            let l:result = self._findLineByNodeRecursive(l:child, a:targetNode, l:line)
+            if l:result != -1
+                return l:result
+            endif
+
+            let l:line += self._countVisibleNodes(l:child)
+        endif
+
+        let l:line += 1
+    endfor
+
+    return -1  " Node not found in this branch
+endfunction
+
+function! s:workspaceEntryCache._countVisibleNodes(node) dict
+    let l:count = 0
+    if a:node.isDirectory && a:node.isOpen
+        for l:child in a:node.children
+            let l:count += 1
+
+            if l:child.isDirectory && l:child.isOpen
+                let l:count += self._countVisibleNodes(l:child)
+            endif
+        endfor
+    endif
+    return l:count
 endfunction
 
 function! s:workspaceEntryCache.isVildNode(node)
@@ -394,7 +444,6 @@ function! s:workspaceEntryCache._findNodeByPathRecursive(nodes, path) dict
             let self.indent += 1
 
             let l:result = self._findNodeByPathRecursive(l:node.children, a:path)
-
             if !empty(l:result)
                 return l:result
             endif
@@ -439,7 +488,7 @@ function! s:workspaceEntryCache.toggleNode() dict
         let l:tree = s:treeUtils.getItem()
         call l:tree.structured_child()
 
-        let self.nodeTree = l:tree
+        let self.selectedPathNodeTree = l:tree
 
         let l:path = s:pathUtils.new(l:selectedNode)
         call l:path.getParent()
@@ -482,6 +531,7 @@ function! s:VisibledChildrenCount(node, list)
 endfunction
 
 function! s:workspaceEntryCache.collapseNode(node) dict
+    echo a:node.path
     if empty(a:node.children) && !a:node.isOpen
         return
     endif
@@ -489,31 +539,31 @@ function! s:workspaceEntryCache.collapseNode(node) dict
     call s:VisibledChildrenCount(a:node, l:list)
     let l:count = len(l:list)
 
+    let l:result = self.findLineByNode(a:node) - 1
+
     let a:node.isOpen = 0
-    let l:lineNum = line('.')
-    let l:endLine = l:lineNum + l:count
+    let l:endLine = l:result + l:count
 
     for l:child in l:list
         call remove(self.files, index(self.files, l:child))
     endfor
 
-    call deletebufline(self.bufnr, l:lineNum + 1, l:endLine)
+    call deletebufline(self.bufnr, l:result + 1, l:endLine)
     let a:node.children = []
     let l:lineContent = getline('.')
     let l:newline  = substitute(getline('.'), '\~', '+', 'g')
 
-    call setbufline(self.bufnr, l:lineNum, l:newline)
+    call setbufline(self.bufnr, l:result, l:newline)
 endfunction
 
-function! s:workspaceEntryCache.expandNode(node, test = 1) dict
+function! s:workspaceEntryCache.expandNode(node) dict
     let l:ui = s:workspaceUI.new()
 
     let a:node.isOpen = 1
-    if a:test
-        let a:node.children = self.nodeTree.children
-    endif
+    let a:node.children = self.selectedPathNodeTree.children
 
     let l:newline  = substitute(getline('.'), '+', '~', 'g')
+
     if has_key(a:node, 'islastNode')
         let l:newline = substitute(l:newline, '`', '|', 'g')
     endif
@@ -605,15 +655,15 @@ endfunction
 
 function! s:treeUtils.new(workspace_root) dict
     let l:obj = self
-    let l:obj.root_path = a:workspace_root
+    let l:obj.path = a:workspace_root
     let l:obj.children = []
     return l:obj
 endfunction
 
 function! s:treeUtils.structured_child() dict
-    let l:path = s:pathUtils.new(self.root_path)
+    let l:path = s:pathUtils.new(self.path)
 
-    for l:file in s:getChild(self.root_path)
+    for l:file in s:getChild(self.path)
 
         let l:path = s:pathUtils.new(l:file)
         let l:include = l:path.newFile()
@@ -747,7 +797,6 @@ function! s:pathUtils.solvePath(path = '') dict
     if l:path !~# self.seg(). '$' && isdirectory(self.path)
         return l:path. self.seg()
     endif
-    " let self.solvedPath = l:path
 
     return l:path
 endfunction
