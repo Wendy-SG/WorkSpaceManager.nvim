@@ -48,14 +48,3 @@ In the  WorkSpaceList view:
 In the WorkSpaceTree view
 - `<CR>`: Open file or expand/collapse directory
 - `Q`: Close the WorkSpaceTree view
-
-## FAQ
-
-- Q: How do I refresh the workspace tree?
-- A: Currently, the tree refreshes automatically when you toggle it. To force a refresh, close and reopen the tree.
-
-- Q: Can I have multiple workspaces open at once?
-- A: The current version supports only one active workspace at a time.
-
-- Q: How do I add files to the workspace?
-- A: Files in the directory where you created the workspace are automatically included. To add new files, create them through your file system or use the 'c' key in the tree view.
