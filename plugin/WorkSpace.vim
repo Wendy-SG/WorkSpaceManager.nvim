@@ -368,10 +368,13 @@ function! s:workspaceEntryCache.createFile() dict
     let l:include = l:newPath.newFile()
     call add(l:expandPath.children, l:include)
 
-    call insert(self.files, include.path, index(l:expandPath.children, l:include))
-
-    call self.redrawParentNode(l:expandPath)
 endfunction
+
+function! s:workspaceEntryCache.redrawParentNode(node)
+    call self.collapseNode(a:node)
+    call self.expandNode(a:node, 0)
+endfunction
+
 
 function! s:workspaceEntryCache.findNodeByPath(path) dict
     return self._findNodeByPathRecursive(self.tree.children, a:path)
@@ -418,11 +421,6 @@ function! s:workspaceEntryCache.getParentNode(node)
     let l:node = self.findNodeByPath(l:path.solvePath())
 
     return l:node
-endfunction
-
-function! s:workspaceEntryCache.redrawParentNode(node)
-    call self.collapseNode(a:node)
-    " call self.expandNode(a:node)
 endfunction
 
 function! s:workspaceEntryCache.toggleNode() dict
@@ -507,11 +505,13 @@ function! s:workspaceEntryCache.collapseNode(node) dict
     call setbufline(self.bufnr, l:lineNum, l:newline)
 endfunction
 
-function! s:workspaceEntryCache.expandNode(node) dict
+function! s:workspaceEntryCache.expandNode(node, test = 1) dict
     let l:ui = s:workspaceUI.new()
 
     let a:node.isOpen = 1
-    let a:node.children = self.nodeTree.children
+    if a:test
+        let a:node.children = self.nodeTree.children
+    endif
 
     let l:newline  = substitute(getline('.'), '+', '~', 'g')
     if has_key(a:node, 'islastNode')
@@ -521,10 +521,10 @@ function! s:workspaceEntryCache.expandNode(node) dict
 
     let l:lineNum = line('.')
     let l:newLines = []
-    let l:endLine = l:lineNum + 1
+    let l:endLine = l:lineNum
 
     call self.prepareNewTreeLines(l:newLines, a:node.children, l:ui.getUIContent().BarUI, [])
-    call append(l:endLine - 1, l:newLines)
+    call append(l:endLine, l:newLines)
     call self.updateFilesWithNewNodes(a:node, l:lineNum)
 
     call cursor(l:lineNum, 0)
