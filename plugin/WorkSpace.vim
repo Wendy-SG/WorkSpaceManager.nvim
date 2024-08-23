@@ -387,7 +387,6 @@ function! s:workspaceEntryCache.deleteFile()
     call remove(self.files, index(self.files, self.files[l:index]))
 
     call self.collapseNode(l:expandPath)
-    " call self.expandNode(l:expandPath)
 endfunction
 
 function! s:workspaceEntryCache.createFile() dict
