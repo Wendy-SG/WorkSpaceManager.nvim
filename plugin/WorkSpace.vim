@@ -1,5 +1,178 @@
-" FILENAME: WorkspaceManager.vim
-" Create Time: 2024-Aug-18-02:13:36
+" ==============================================================================
+" WorkspaceManager.vim - Comprehensive Workspace Management Plugin for Vim
+" ==============================================================================
+" Version: 1.0
+" Author: Wendy-SG
+" Last Change: 2024-Aug-18
+" License: VIM License
+" Repository: https://github.com/[your-username]/WorkspaceManager.vim
+"
+" ==============================================================================
+" INTRODUCTION
+" ==============================================================================
+" WorkspaceManager.vim is an advanced workspace management plugin for Vim,
+" providing a powerful and intuitive tree-like file explorer interface. It
+" enables efficient navigation, organization, and manipulation of files and
+" directories within defined workspaces, enhancing productivity for developers
+" and writers alike.
+"
+" ==============================================================================
+" FEATURES
+" ==============================================================================
+" - Tree-style visualization of workspaces and their contents
+" - Intuitive file and directory creation, deletion, and navigation
+" - Persistent workspace information across Vim sessions
+" - Customizable key mappings for all operations
+" - Efficient updates of the tree view for large directory structures
+" - Syntax highlighting for improved readability
+" - Lazy loading of directory contents for improved performance
+" - Multiple workspace support
+"
+" ==============================================================================
+" REQUIREMENTS
+" ==============================================================================
+" - Vim 8.0 or higher (or Neovim 0.4.0+)
+" - File system read/write permissions
+" - (Optional) Python support in Vim for enhanced performance
+"
+" ==============================================================================
+" INSTALLATION
+" ==============================================================================
+"
+" Using Vim-Plug:
+"   Plug 'Wendy-SG/WorkspaceManager.nvim'
+"
+" Using Vundle:
+"   Plugin 'Wendy-SG/WorkspaceManager.nvim'
+"
+" After installation, reload Vim or source this file:
+"   :source %
+"
+" ==============================================================================
+" USAGE
+" ==============================================================================
+" Commands:
+"   :CreateWorkspace [path] - Create a new workspace
+"     If [path] is omitted, uses the current working directory
+"   :ToggleWorkspaceTree   - Toggle the workspace tree view
+"
+" Default key mappings in the workspace tree:
+"   <CR>  - Open file / Toggle directory expansion
+"   d     - Delete file or directory
+"   c     - Create new file or directory
+"   r     - Rename file or directory
+"   x     - Cut file or directory
+"   y     - Copy file or directory
+"   p     - Paste file or directory
+"   q     - Close the workspace tree
+"   R     - Refresh the workspace tree
+"   ?     - Show help
+"
+" ==============================================================================
+" CONFIGURATION
+" ==============================================================================
+" The following global variables can be set in your .vimrc to customize behavior:
+"
+"   g:WorkSpaceManagerEnter (default: '<CR>')
+"     Key to open files or toggle directory expansion
+"
+"   g:WorkSpaceManagerExit (default: 'q')
+"     Key to exit tree view
+"
+"   g:WorkSpaceManagerListDelete (default: 'd')
+"     Key to delete items
+"
+"   g:WorkSpaceManagerTreeCreateFile (default: 'c')
+"     Key to create new files or directories
+"
+"   g:WorkSpaceCreateFileExpandNode (default: 1)
+"     Set to 0 to disable auto-expansion after file creation
+"
+"   g:WorkSpaceManagerWindowWidth (default: 30)
+"     Width of the workspace tree window
+"
+"   g:WorkSpaceManagerShowHidden (default: 0)
+"     Set to 1 to show hidden files by default
+"
+" Example configuration:
+"   let g:WorkSpaceManagerEnter = '<CR>'
+"   let g:WorkSpaceManagerExit = 'q'
+"   let g:WorkSpaceManagerListDelete = 'd'
+"   let g:WorkSpaceManagerTreeCreateFile = 'c'
+"
+" ==============================================================================
+" FUNCTIONS
+" ==============================================================================
+" The plugin provides several functions that can be used in your own scripts:
+"
+" WorkspaceManager#CreateWorkspace(path)
+"   Creates a new workspace at the specified path
+"
+" WorkspaceManager#ToggleTree()
+"   Toggles the visibility of the workspace tree
+"
+" WorkspaceManager#RefreshTree()
+"   Refreshes the workspace tree view
+"
+" WorkspaceManager#JumpToFile(file)
+"   Jumps to the specified file in the workspace tree
+"
+" ==============================================================================
+" CONTRIBUTING
+" ==============================================================================
+" Contributions to WorkspaceManager.nvim are welcome! Please refer to the
+" CONTRIBUTING.md file in the repository for guidelines on how to contribute.
+"
+" ==============================================================================
+" LICENSE
+" ==============================================================================
+" This plugin is distributed under the VIM License.
+" See the included LICENSE file for details.
+"
+" ==============================================================================
+" ACKNOWLEDGEMENTS
+" ==============================================================================
+" This plugin was inspired by various file explorer plugins in the Vim
+" community, including NERDTree and vinegar.vim. Special thanks to all the
+" contributors and users who have provided feedback and suggestions.
+"
+" ==============================================================================
+" IMPLEMENTATION DETAILS
+" ==============================================================================
+" The plugin is structured around several key components:
+"
+" 1. s:workspaceCache: Manages overall workspace state and UI
+"    - Handles cache file operations
+"    - Coordinates workspace tree visualization
+"
+" 2. s:workspaceEntryCache: Handles individual workspace entries
+"    - Manages node expansion, collapse, and navigation
+"    - Implements file and directory operations (create, delete, rename)
+"
+" 3. s:pathUtils: Provides utility functions for path manipulation
+"    - Handles file and directory path operations
+"    - Ensures cross-platform compatibility
+"
+" 4. s:treeUtils: Manages the tree data structure
+"    - Handles sorting and structuring of tree nodes
+"    - Implements efficient tree traversal algorithms
+"
+" 5. s:workspaceUI: Manages UI elements and styling
+"    - Handles syntax highlighting and visual representation of the tree
+"    - Implements custom buffer rendering for the tree view
+"
+" These components work together to provide a seamless workspace management
+" experience. The plugin uses a cache file to store workspace information,
+" ensuring persistence across Vim sessions.
+"
+" Performance optimizations include lazy loading of directory contents and
+" efficient tree updates to handle large directory structures smoothly.
+"
+" For detailed function documentation, please refer to the inline comments
+" throughout this file.
+"
+" ==============================================================================
+
 
 let s:savedOptions = &cpo
 set cpo&vim
