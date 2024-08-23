@@ -45,9 +45,6 @@
 " Using Vundle:
 "   Plugin 'Wendy-SG/WorkspaceManager.nvim'
 "
-" After installation, reload Vim or source this file:
-"   :source %
-"
 " ==============================================================================
 " USAGE
 " ==============================================================================
