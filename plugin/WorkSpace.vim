@@ -612,28 +612,35 @@ function! s:VisibledChildrenCount(node, list)
 endfunction
 
 function! s:workspaceEntryCache.collapseNode(node) dict
-    if empty(a:node.children) && !a:node.isOpen && !self.isValidNode(a:node)
+    if !self.isValidNode(a:node)
+        call s:errorMsg("Invalid node provided for collapsing")
         return
     endif
 
-    let l:list = []
-    let l:count = s:VisibledChildrenCount(a:node, l:list)
-    let l:result = self.findLineByNode(a:node) - 1
+    if empty(a:node.children) && !a:node.isOpen
+        return
+    endif
+
+    let l:visibleChildren = []
+    let l:childrenCount = s:VisibledChildrenCount(a:node, l:visibleChildren)
+    let l:nodeLineNumber = self.findLineByNode(a:node) - 1
+    let l:endLine = l:nodeLineNumber + l:childrenCount
 
     let a:node.isOpen = 0
-    let l:endLine = l:result + l:count
+    let a:node.children = []
 
-    for l:child in l:list
+    for l:child in l:visibleChildren
         call remove(self.files, index(self.files, l:child))
     endfor
 
-    call deletebufline(self.bufnr, l:result + 1, l:endLine)
-    let a:node.children = []
+    call self.updateBufferContent(self.bufnr, l:nodeLineNumber + 1, l:endLine)
+endfunction
 
-    let l:lineContent = getline('.')
+function! s:workspaceEntryCache.updateBufferContent(bufnr, startLine, endLine) abort
+    call deletebufline(a:bufnr, a:startLine, a:endLine)
+
     let l:newline  = substitute(getline('.'), '\~', '+', 'g')
-
-    call setbufline(self.bufnr, l:result, l:newline)
+    call setbufline(a:bufnr, a:startLine - 1, l:newline)
 endfunction
 
 function! s:workspaceEntryCache.isValidNode(node) abort
@@ -652,23 +659,28 @@ function! s:workspaceEntryCache.expandNode(node) dict
     let a:node.isOpen = 1
     let a:node.children = self.selectedPathNodeTree.children
 
-    let l:newline  = substitute(getline('.'), '+', '~', 'g')
-
-    if has_key(a:node, 'islastNode')
-        let l:newline = substitute(l:newline, '`', '|', 'g')
-    endif
-    call setbufline(self.bufnr, line('.'), l:newline)
-
     let l:lineNum = self.findLineByNode(a:node) - 1
+    let l:lineNumContent = getline(l:lineNum)
+
+    let l:updatedLine = s:updateLineAppearance(l:lineNumContent, a:node)
+
+    call setbufline(self.bufnr, l:lineNum, l:updatedLine)
 
     let l:newLines = []
     let l:endLine = l:lineNum
 
     call self.prepareNewTreeLines(l:newLines, a:node.children, l:ui.getUIContent().BarUI)
-    call append(l:endLine, l:newLines)
-    call self.updateFilesWithNewNodes(a:node, l:lineNum)
+    if !empty(l:newLines)
+        call append(l:endLine, l:newLines)
+        call self.updateFilesWithNewNodes(a:node, l:lineNum)
+    endif
 
     call cursor(l:lineNum, 0)
+endfunction
+
+function! s:updateLineAppearance(line, node) abort
+    let l:updatedLine = substitute(a:line, '+', '~', 'g')
+    return get(a:node, 'islastNode', 0) ? substitute(l:updatedLine, '`', '|', 'g') : l:updatedLine
 endfunction
 
 function! s:workspaceEntryCache.prepareNewTreeLines(lines, children, uiBarUI) dict
@@ -911,3 +923,4 @@ endfunction
 
 let &cpo = s:savedOptions
 unlet s:savedOptions
+
