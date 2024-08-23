@@ -553,30 +553,31 @@ function! s:workspaceEntryCache.toggleNode() dict
         return
     endif
 
+    call s:treeUtils.new(copy(l:selectedNode))
+    let l:tree = s:treeUtils.getItem()
+    call l:tree.structured_child()
+
+    let self.selectedPathNodeTree = l:tree
+
+    let l:path = s:pathUtils.new(l:selectedNode)
+    call l:path.getParent()
+    let l:node = self.findNodeByPath(l:path.solvePath())
+
+    if !self.isVildNode(l:node)
+        call s:errorMsg('Invild node.')
+        return
+    endif
+
+    let l:indent_width = 2
+
+    let self.indentWidth = repeat(' ', l:indent_width)
+    let self.indent = len(l:path.parent) * l:indent_width
+
     if filereadable(l:selectedNode)
         call self.handleFile(l:selectedNode)
     endif
 
     if isdirectory(l:selectedNode)
-        call s:treeUtils.new(copy(l:selectedNode))
-        let l:tree = s:treeUtils.getItem()
-        call l:tree.structured_child()
-
-        let self.selectedPathNodeTree = l:tree
-
-        let l:path = s:pathUtils.new(l:selectedNode)
-        call l:path.getParent()
-        let l:node = self.findNodeByPath(l:path.solvePath())
-
-        if !self.isVildNode(l:node)
-            call s:errorMsg('Invild node.')
-            return
-        endif
-
-        let l:indent_width = 2
-
-        let self.indentWidth = repeat(' ', l:indent_width)
-        let self.indent = len(l:path.parent) * l:indent_width
 
         if !empty(l:node) && l:node.isOpen
             call self.collapseNode(l:node)
